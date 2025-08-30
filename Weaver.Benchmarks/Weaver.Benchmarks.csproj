@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+	  <!--<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
+	  <!--<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" Version="0.15.2" />
+    <PackageReference Include="Dapper" Version="2.1.66" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Weaver.Abstractions\Weaver.Abstractions.csproj" />
+	  <Analyzer Include="..\Weaver.Abstractions\bin\Debug\netstandard2.0\Weaver.Abstractions.dll" />
+  </ItemGroup>
+	
+
+</Project>
