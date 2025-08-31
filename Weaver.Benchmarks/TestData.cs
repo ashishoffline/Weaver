@@ -14,7 +14,7 @@ internal sealed class TestData
             new DataColumn("Email", typeof(string)),
             new DataColumn("Designation", typeof(string)),
             new DataColumn("Compensation", typeof(double)),
-            new DataColumn("MyPropertyNullable", typeof(int))
+            new DataColumn("MyPropertyNullable", typeof(int?))
         ]);
 
         for (int i = 0; i < size; i++)
@@ -24,7 +24,8 @@ internal sealed class TestData
                 Guid.NewGuid().ToString("N")[..12],
                 $"user{i}@test.com", // Consistent pattern
                 Guid.NewGuid().ToString("N")[..8],
-                Random.Shared.NextDouble() * 100000 + 50000
+                Random.Shared.NextDouble() * 100000 + 50000,
+                DBNull.Value
             );
         }
 

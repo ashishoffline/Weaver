@@ -2,6 +2,7 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 
@@ -10,6 +11,15 @@ namespace Weaver.Abstractions.Analyzers
     [Generator(LanguageNames.CSharp)]
     public class MapperGenerator : IIncrementalGenerator
     {
+        private class PropertyInfo
+        {
+            public string Name { get; set; }
+            public string Type { get; set; }
+            public string ColumnName { get; set; }
+            public bool IsNullable { get; set; }
+            public bool IsInitOnly { get; set; }
+        }
+
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
             // Step 1: Collect candidate classes with [GenerateMapper]
@@ -27,7 +37,7 @@ namespace Weaver.Abstractions.Analyzers
                         }
                         return null;
                     })
-                .Where(static symbol => symbol is not null)!;
+                .Where(static symbol => symbol is not null);
 
             // Step 2: Generate source for each class
             context.RegisterSourceOutput(classDeclarations, (spc, classSymbol) =>
@@ -44,9 +54,23 @@ namespace Weaver.Abstractions.Analyzers
             var className = classSymbol.Name;
 
             var properties = GetMappableProperties(classSymbol);
-            var mappingCode = GenerateMappingCode(properties, className);
+            return GenerateMappingCode(properties, namespaceName, className, true);
+        }
 
-            return $@"
+        private string GenerateMappingCode(List<PropertyInfo> properties, string namespaceName, string className, bool isStrict)
+        {
+            var ordinalFunctionName = isStrict ? "GetOrdinal" : "GetOrdinalSafe";
+            var ordinalVariables = string.Join($";\n\t\t\t", properties.Select(prop => $"int ord{prop.Name} = reader.{ordinalFunctionName}(\"{prop.ColumnName}\")"));
+
+            // Generate property initializers for object creation
+            var propertyMappings = string.Join(",\n\t\t\t\t\t", properties.Select((prop, index) =>
+            {
+                return isStrict
+                        ? $"{prop.Name} = reader.{GetValueFunction(prop.Type, prop.IsNullable)}(ord{prop.Name})"
+                        : $"{prop.Name} = ord{prop.Name} >= 0 ? reader.{GetValueFunction(prop.Type, prop.IsNullable)}(ord{prop.Name}) : default";
+            }));
+
+            return $@"// Source Generated code, don't modify.
 using System;
 using System.Data.Common;
 using System.Collections.Generic;
@@ -58,61 +82,26 @@ namespace {namespaceName}
 {{
     public static class {className}Mapper
     {{
-        {mappingCode}
+        public static async Task<IReadOnlyList<{className}>> MapFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
+        {{
+            var results = new List<{className}>();
+
+            // Ordinal Values for each column.
+            {ordinalVariables};
+            
+            // Process all rows using pre-calculated ordinals
+            while (await reader.ReadAsync(cancellationToken))
+            {{
+                results.Add(new {className}
+                {{
+                    {propertyMappings}
+                }});
+            }}
+            
+            return results.AsReadOnly();
+        }}
     }}
-}}
-";
-        }
-
-        private string GenerateMappingCode(List<PropertyInfo> properties, string className)
-        {
-            var sb = new StringBuilder();
-
-            // Generate the column names array(compile-time constant)
-            sb.AppendLine("private static readonly string[] _columnNames = new string[] { ");
-            foreach (var property in properties)
-            {
-                sb.Append($"\"{property.ColumnName}\",");
-            }
-            sb.AppendLine(" };");
-            sb.AppendLine();
-
-            // Generate the optimized multi-row mapper
-            sb.AppendLine($"public static async Task<IReadOnlyList<{className}>> MapFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)");
-            sb.AppendLine("{");
-
-            sb.AppendLine($"var results = new List<{className}>();");
-
-            sb.AppendLine("// Get column ordinals once for the entire result set");
-            sb.AppendLine("int[] propertyPositionInReader = new int[_columnNames.Length];");
-            sb.AppendLine($"for (int i = 0; i < _columnNames.Length; i++)");
-            sb.AppendLine("{");
-            sb.AppendLine("propertyPositionInReader[i] = reader.GetOrdinalSafe(_columnNames[i]);");
-            sb.AppendLine("}");
-
-            sb.AppendLine();
-            sb.AppendLine("int ordinal;");
-            sb.AppendLine("// Process all rows using pre-calculated ordinals");
-            sb.AppendLine("while(await reader.ReadAsync(cancellationToken))");
-            sb.AppendLine("{");
-
-            sb.AppendLine($"results.Add(new {className}");
-            sb.AppendLine("{");
-            // Generate object initializer with ordinal array access
-            for (int i = 0; i < properties.Count; i++)
-            {
-                var prop = properties[i];
-
-                sb.AppendLine($"{prop.Name} = propertyPositionInReader.TryGetValidOrdinal({i}, out ordinal) ? ({prop.Type})reader.GetValue(ordinal) : default,");
-            }
-            sb.AppendLine("});");
-
-            sb.AppendLine("}");
-
-            sb.AppendLine("return results.AsReadOnly();");
-            sb.AppendLine("}");
-
-            return sb.ToString();
+}}";
         }
 
         private List<PropertyInfo> GetMappableProperties(INamedTypeSymbol typeSymbol)
@@ -162,39 +151,18 @@ namespace {namespaceName}
             return property.Name;
         }
 
-        private class PropertyInfo
+        private string GetValueFunction(string typeName, bool isNullable)
         {
-            public string Name { get; set; }
-            public string Type { get; set; }
-            public string ColumnName { get; set; }
-            public bool IsNullable { get; set; }
-            public bool IsInitOnly { get; set; }
-        }
-
-        private class SyntaxReceiver : ISyntaxContextReceiver
-        {
-            public List<INamedTypeSymbol> CandidateClasses { get; } = new List<INamedTypeSymbol>();
-
-            public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
+            return typeName switch
             {
-                if (context.Node is ClassDeclarationSyntax classDeclarationSyntax && classDeclarationSyntax.AttributeLists.Count > 0)
-                {
-                    var classSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-                    if (classSymbol != null && classSymbol is INamedTypeSymbol namedTypeSymbol && namedTypeSymbol.GetAttributes().Any(attr => attr.AttributeClass?.Name == "GenerateMapperAttribute"))
-                    {
-                        CandidateClasses.Add(namedTypeSymbol);
-                    }
-                }
-            }
+                "int" => nameof(DbDataReader.GetInt32),
+                "int?" => nameof(DataReaderExtensions.GetNullableInt32),
+                "double" => nameof(DbDataReader.GetDouble),
+                "double?" => nameof(DataReaderExtensions.GetNullableDouble),
+                "string" or "string?" => nameof(DataReaderExtensions.GetNullableString),
+                _ => nameof(DbDataReader.GetValue),
+            };
         }
-
-        //private string GetValueFunction(string typeName)
-        //{
-        //    return typeName switch
-        //    {
-        //        "int" => 
-        //    };
-        //}
     }
 }
 

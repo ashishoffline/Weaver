@@ -1,14 +1,40 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-	  <IncludeBuildOutput>false</IncludeBuildOutput>
-	  <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
-	  <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-	  <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<LangVersion>latest</LangVersion>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
-  </ItemGroup>
+		<!-- Include both lib and analyzers -->
+		<IncludeBuildOutput>true</IncludeBuildOutput>
+		<IncludeSymbols>false</IncludeSymbols>
+
+		<!-- Source generator specific settings -->
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+
+		<!-- NuGet package metadata -->
+		<PackageId>Weaver.Abstractions</PackageId>
+		<PackageVersion>1.0.0</PackageVersion>
+		<Authors>Ashish Jha, Pallab Banerjee</Authors>
+		<Description>Source-generated high-performance data access library - Abstractions and Source Generator</Description>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<RepositoryUrl>https://github.com/ashishoffline/Weaver</RepositoryUrl>
+		<PackageTags>orm;source-generator;performance;database;data-access;ado.net</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" PrivateAssets="all" />
+	</ItemGroup>
+
+	<!-- Include the generator in the NuGet package -->
+	<ItemGroup Condition="'$(Configuration)' == 'Release'">
+		<None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers\dotnet\cs\$(AssemblyName).dll" Visible="false" />
+	</ItemGroup>
+
+	<!-- Include README in package -->
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+	
 </Project>

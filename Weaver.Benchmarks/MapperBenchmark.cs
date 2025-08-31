@@ -27,7 +27,7 @@ namespace Weaver.Benchmarks
         [Benchmark]
         public async Task<IReadOnlyList<Employee>> HandWrittenMapping_Name()
         {
-            var employees = new List<Employee>(DataSize);
+            var employees = new List<Employee>();
             DbDataReader reader = _testData.CreateDataReader();
 
             while (await reader.ReadAsync())
@@ -48,7 +48,7 @@ namespace Weaver.Benchmarks
         [Benchmark]
         public async Task<IReadOnlyList<Employee>> HandWrittenMapping_Ordinal()
         {
-            var employees = new List<Employee>(DataSize);
+            var employees = new List<Employee>();
             DbDataReader reader = _testData.CreateDataReader();
 
             while (await reader.ReadAsync())
@@ -69,7 +69,7 @@ namespace Weaver.Benchmarks
         [Benchmark]
         public async Task<IReadOnlyList<Employee>> ExpectedSourceGen()
         {
-            var employees = new List<Employee>(DataSize);
+            var employees = new List<Employee>();
             DbDataReader reader = _testData.CreateDataReader();
 
             int[] ordinal = new int[properties.Length];
@@ -111,7 +111,6 @@ namespace Weaver.Benchmarks
         public async Task<IReadOnlyList<Employee>> SourceGen()
         {
             DbDataReader reader = _testData.CreateDataReader();
-
             return await EmployeeMapper.MapFromReaderAsync(reader, CancellationToken.None);
         }
 
