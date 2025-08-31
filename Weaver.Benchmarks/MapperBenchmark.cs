@@ -107,12 +107,12 @@ namespace Weaver.Benchmarks
             return employees;
         }
 
-        [Benchmark]
-        public async Task<IReadOnlyList<Employee>> SourceGen()
-        {
-            DbDataReader reader = _testData.CreateDataReader();
-            return await EmployeeMapper.MapFromReaderAsync(reader, CancellationToken.None);
-        }
+        // [Benchmark]
+        // public async Task<IReadOnlyList<Employee>> SourceGen()
+        // {
+        //     DbDataReader reader = _testData.CreateDataReader();
+        //     return await EmployeeMapper.MapFromReaderAsync(reader, CancellationToken.None);
+        // }
 
         [Benchmark]
         public IReadOnlyList<Employee> DapperMapper()
