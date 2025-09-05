@@ -4,9 +4,22 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>latest</LangVersion>
 
-		<!-- Include both lib and analyzers -->
+		<!-- When packing this project into a NuGet package, include the compiled output
+		(DLL, XML docs, PDBs, etc.) in the default lib/<TargetFramework>/ folder.
+		This ensures that consumers get a normal assembly reference to our library
+		(e.g., for attributes or helper types) without having to add it manually.
+		Note: This does NOT place the DLL in the analyzers/ folder — that must be added separately
+		if the assembly also contains a source generator or analyzer.-->
 		<IncludeBuildOutput>true</IncludeBuildOutput>
-		<IncludeSymbols>false</IncludeSymbols>
+
+		<!-- Generate a separate .snupkg symbol package containing PDBs for this assembly.
+		This allows consumers to step into our library code during debugging.
+		Symbols are published to NuGet.org's symbol server and fetched automatically by IDEs.
+		Does not affect source-generated code; consumers can inspect that by enabling
+		EmitCompilerGeneratedFiles in their own projects.-->
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<DebugType>portable</DebugType>
 
 		<!-- Source generator specific settings -->
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
@@ -24,19 +37,22 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" PrivateAssets="all" />
+		<!-- Roslyn compiler API for building the source generator. PrivateAssets="all" ensures this dependency is not exposed to consumers of the package. -->
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" PrivateAssets="all" />
 	</ItemGroup>
 
-	<!-- Include the generator in the NuGet package -->
+	<!-- Add the compiled DLL to the analyzers/dotnet/cs/ folder in the NuGet package.
+	This is the special location the compiler scans for analyzers and source
+	generators. Without this entry, the generator will not run when the package
+	is installed, even if the DLL is present in lib/.
+	This entry is required in addition to <IncludeBuildOutput> when the same
+	assembly contains both normal library code (attributes, helpers) and a source generator.-->
 	<ItemGroup Condition="'$(Configuration)' == 'Release'">
-		<None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers\dotnet\cs\$(AssemblyName).dll" Visible="false" />
+		<!-- Analyzer location -->
+		<None Include="$(OutputPath)$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs/$(AssemblyName).dll" Visible="false" />
 	</ItemGroup>
 
-	<!-- Include README in package -->
+	<!-- Include README in the NuGet package so it appears on the package's NuGet.org page -->
 	<ItemGroup>
 		<None Include="README.md" Pack="true" PackagePath="\" />
 	</ItemGroup>
