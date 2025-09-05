@@ -76,7 +76,6 @@ using System.Data.Common;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Weaver.Abstractions.Extensions;
 
 namespace {namespaceName}
 {{
