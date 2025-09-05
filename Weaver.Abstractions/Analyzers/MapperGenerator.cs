@@ -13,11 +13,11 @@ namespace Weaver.Abstractions.Analyzers
     {
         private class PropertyInfo
         {
-            public string Name { get; set; }
-            public string Type { get; set; }
-            public string ColumnName { get; set; }
-            public bool IsNullable { get; set; }
-            public bool IsInitOnly { get; set; }
+            public string Name { get; init; }
+            public string Type { get; init; }
+            public string ColumnName { get; init; }
+            public bool IsNullable { get; init; }
+            public bool IsInitOnly { get; init; }
         }
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
