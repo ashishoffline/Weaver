@@ -2,7 +2,7 @@
 
 namespace Weaver.Benchmarks
 {
-    internal class Program
+    internal static class Program
     {
         static void Main(string[] args)
         {

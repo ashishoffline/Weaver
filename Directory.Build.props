@@ -1,9 +1,15 @@
 <Project>
-	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'Weaver' or '$(MSBuildProjectName)' == 'Weaver.Abstractions'">
+	<PropertyGroup>
 		<LangVersion>12</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<!--Temporary false, change to true once all warnings are fixed-->
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'Weaver' or '$(MSBuildProjectName)' == 'Weaver.Abstractions'">
 		<!--This is used for controlling while building locally use project reference and while packing nuget package use published nuget package-->
 		<UseProjectReferences>true</UseProjectReferences>
 		
@@ -11,9 +17,10 @@
 		<Authors>Ashish Jha, Pallab Banerjee</Authors>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageTags>orm;source-generator;performance;database;data-access;ado.net</PackageTags>
+		<PackageTags>data-access;ado.net;orm;sql;micro-orm</PackageTags>
 		<RepositoryUrl>https://github.com/ashishoffline/Weaver</RepositoryUrl>
 		<PackageProjectUrl>https://github.com/ashishoffline/Weaver/blob/master/README.md</PackageProjectUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 
 		<!-- Shared NuGet packaging settings -->
 

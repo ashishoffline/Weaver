@@ -9,8 +9,8 @@ namespace Weaver.Benchmarks
     [MemoryDiagnoser(true)]
     public class MapperBenchmark
     {
-        [Params(10, 50, 100, 500, 1000, 5000, 10000)]
-        //[Params(2)]
+        // [Params(10, 50, 100, 500, 1000, 5000, 10000)]
+        [Params(5)]
         public int DataSize { get; set; }
 
         private DataTable _testData = null!;
@@ -24,7 +24,7 @@ namespace Weaver.Benchmarks
             _testData = TestData.GetData(DataSize);
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task<IReadOnlyList<Employee>> HandWrittenMapping_Name()
         {
             var employees = new List<Employee>();
@@ -45,7 +45,7 @@ namespace Weaver.Benchmarks
             return employees;
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task<IReadOnlyList<Employee>> HandWrittenMapping_Ordinal()
         {
             var employees = new List<Employee>();
@@ -66,7 +66,7 @@ namespace Weaver.Benchmarks
             return employees;
         }
 
-        [Benchmark]
+        // [Benchmark]
         public async Task<IReadOnlyList<Employee>> ExpectedSourceGen()
         {
             var employees = new List<Employee>();
