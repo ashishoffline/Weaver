@@ -3,7 +3,7 @@
 namespace Weaver.Benchmarks;
 
 [GenerateMapper]
-public partial class Employee
+public class Employee
 {
     public int Id { get; init; }
     public required string Name { get; init; }

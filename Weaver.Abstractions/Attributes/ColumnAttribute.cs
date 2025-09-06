@@ -1,14 +1,12 @@
-﻿using System;
+﻿namespace Weaver.Abstractions.Attributes;
 
-namespace Weaver.Abstractions.Attributes
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class ColumnAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Property)]
-    public sealed class ColumnAttribute : Attribute
+    public string Name { get; }
+
+    public ColumnAttribute(string name)
     {
-        public string Name { get; }
-        public ColumnAttribute(string name)
-        {
-            Name = name;
-        }
+        Name = name;
     }
 }

@@ -2,38 +2,13 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>
-		<LangVersion>latest</LangVersion>
-
-		<!-- When packing this project into a NuGet package, include the compiled output
-		(DLL, XML docs, PDBs, etc.) in the default lib/<TargetFramework>/ folder.
-		This ensures that consumers get a normal assembly reference to our library
-		(e.g., for attributes or helper types) without having to add it manually.
-		Note: This does NOT place the DLL in the analyzers/ folder — that must be added separately
-		if the assembly also contains a source generator or analyzer.-->
-		<IncludeBuildOutput>true</IncludeBuildOutput>
-
-		<!-- Generate a separate .snupkg symbol package containing PDBs for this assembly.
-		This allows consumers to step into our library code during debugging.
-		Symbols are published to NuGet.org's symbol server and fetched automatically by IDEs.
-		Does not affect source-generated code; consumers can inspect that by enabling
-		EmitCompilerGeneratedFiles in their own projects.-->
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<DebugType>portable</DebugType>
-
+		
 		<!-- Source generator specific settings -->
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
 
 		<!-- NuGet package metadata -->
 		<PackageId>Weaver.Abstractions</PackageId>
-		<PackageVersion>1.0.0</PackageVersion>
-		<Authors>Ashish Jha, Pallab Banerjee</Authors>
 		<Description>Source-generated high-performance data access library - Abstractions and Source Generator</Description>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<RepositoryUrl>https://github.com/ashishoffline/Weaver</RepositoryUrl>
-		<PackageTags>orm;source-generator;performance;database;data-access;ado.net</PackageTags>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -53,8 +28,5 @@
 	</ItemGroup>
 
 	<!-- Include README in the NuGet package so it appears on the package's NuGet.org page -->
-	<ItemGroup>
-		<None Include="README.md" Pack="true" PackagePath="\" />
-	</ItemGroup>
 	
 </Project>
