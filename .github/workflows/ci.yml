@@ -31,11 +31,15 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Publish Weaver (dry run)
-        run: dotnet publish Weaver/Weaver.csproj -c Release --no-build
-
       - name: Publish Weaver.Abstractions (dry run)
-        run: dotnet publish Weaver/Weaver.Abstractions.csproj -c Release --no-build
+        run: dotnet publish Weaver.Abstractions/Weaver.Abstractions.csproj -c Release -f netstandard2.0 --no-build --self-contained false
+
+      - name: Publish Weaver (netstandard2.0 dry run)
+        run: dotnet publish Weaver/Weaver.csproj -c Release -f netstandard2.0 --no-build --self-contained false
+
+      - name: Publish Weaver (net8.0 dry run)
+        run: dotnet publish Weaver/Weaver.csproj -c Release -f net8.0 --no-build --self-contained false
+
 
 
   semantic-release:
