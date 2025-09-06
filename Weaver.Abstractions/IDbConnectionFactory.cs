@@ -1,9 +1,8 @@
 ﻿using System.Data.Common;
 
-namespace Weaver.Abstractions
+namespace Weaver.Abstractions;
+
+public interface IDbConnectionFactory
 {
-    public interface IDbConnectionFactory
-    {
-        DbConnection GetConnection();
-    }
+    DbConnection GetConnection();
 }

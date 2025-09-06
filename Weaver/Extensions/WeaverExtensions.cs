@@ -2,28 +2,27 @@
 using System.Data.Common;
 using Weaver.Abstractions;
 
-namespace Weaver.Extensions
+namespace Weaver.Extensions;
+
+public static class WeaverExtensions
 {
-    public static class WeaverExtensions
+    public static IServiceCollection AddConnectionFactory(this IServiceCollection services, DbProviderFactory dbProviderFactory, string connectionString)
     {
-        public static IServiceCollection AddConnectionFactory(this IServiceCollection services, DbProviderFactory dbProviderFactory, string connectionString)
+        services.AddSingleton<IDbConnectionFactory>(sp =>
         {
-            services.AddSingleton<IDbConnectionFactory>(sp =>
-            {
-                return new DbConnectionFactory(dbProviderFactory, connectionString);
-            });
+            return new DbConnectionFactory(dbProviderFactory, connectionString);
+        });
 
-            return services;
-        }
-        public static IServiceCollection AddWeaverSqlClient(this IServiceCollection services)
+        return services;
+    }
+    public static IServiceCollection AddWeaverSqlClient(this IServiceCollection services)
+    {
+        services.AddSingleton<IDbClient>(sp =>
         {
-            services.AddSingleton<IDbClient>(sp =>
-            {
-                var dbConnectionFactory = sp.GetRequiredService<IDbConnectionFactory>();
-                return new WeaverSqlClient(dbConnectionFactory);
-            });
+            var dbConnectionFactory = sp.GetRequiredService<IDbConnectionFactory>();
+            return new WeaverSqlClient(dbConnectionFactory);
+        });
 
-            return services;
-        }
+        return services;
     }
 }

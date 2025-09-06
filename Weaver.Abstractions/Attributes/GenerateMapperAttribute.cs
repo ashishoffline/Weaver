@@ -1,10 +1,4 @@
-﻿using System;
+﻿namespace Weaver.Abstractions.Attributes;
 
-namespace Weaver.Abstractions.Attributes
-{
-    [AttributeUsage(AttributeTargets.Class)]
-    public sealed class GenerateMapperAttribute : Attribute
-    {
-
-    }
-}
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class GenerateMapperAttribute : Attribute { }

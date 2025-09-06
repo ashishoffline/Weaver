@@ -1,0 +1,52 @@
+<Project>
+	<PropertyGroup>
+		<LangVersion>12</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<!--Temporary false, change to true once all warnings are fixed-->
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<AnalysisLevel>latest-all</AnalysisLevel>
+	</PropertyGroup>
+	
+	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'Weaver' or '$(MSBuildProjectName)' == 'Weaver.Abstractions'">
+		<!--This is used for controlling while building locally use project reference and while packing nuget package use published nuget package-->
+		<UseProjectReferences>true</UseProjectReferences>
+		
+		<!-- NuGet package common metadata for Weaver & Weaver.Abstractions -->
+		<Authors>Ashish Jha, Pallab Banerjee</Authors>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>data-access;ado.net;orm;sql;micro-orm</PackageTags>
+		<RepositoryUrl>https://github.com/ashishoffline/Weaver</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/ashishoffline/Weaver/blob/master/README.md</PackageProjectUrl>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+
+		<!-- Shared NuGet packaging settings -->
+
+		<!-- When packing a project into a NuGet package, include the compiled output
+		(DLL, XML docs, PDBs, etc.) in the default lib/<TargetFramework>/ folder.
+		This ensures that consumers get a normal assembly reference to our library
+		without having to add it manually.
+		Note: This does NOT place the DLL in the analyzers/ folder — that must be added separately
+		if the assembly also contains a source generator or analyzer.-->
+		<IncludeBuildOutput>true</IncludeBuildOutput>
+
+
+		<!-- Generate a separate .snupkg symbol package containing PDBs for the assembly.
+		This allows consumers to step into our library code during debugging.
+		Symbols are published to NuGet.org's symbol server and fetched automatically by IDEs.
+		Does not affect source-generated code; consumers can inspect that by enabling
+		EmitCompilerGeneratedFiles in their own projects.-->
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<DebugType>portable</DebugType>
+
+		<!-- Disable auto-pack on build; CI handles packing explicitly -->
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(MSBuildProjectName)' == 'Weaver' or '$(MSBuildProjectName)' == 'Weaver.Abstractions'">
+		<None Include="..\README.md" Pack="true" PackagePath="\" />
+	</ItemGroup>
+</Project>

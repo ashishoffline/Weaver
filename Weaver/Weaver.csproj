@@ -1,17 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
-  </ItemGroup>
+		<!-- Package-specific metadata -->
+		<PackageId>Weaver</PackageId>
+		<Description>ADO.NET-specific runtime support for Weaver source-generated data access</Description>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Weaver.Abstractions\Weaver.Abstractions.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.8" />
+	</ItemGroup>
+
+	<!-- Use project reference in dev, NuGet reference in CI -->
+	<ItemGroup Condition="'$(UseProjectReferences)' == 'true'">
+		<ProjectReference Include="..\Weaver.Abstractions\Weaver.Abstractions.csproj" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(UseProjectReferences)' != 'true'">
+		<PackageReference Include="Weaver.Abstractions" Version="$(Version)" />
+	</ItemGroup>
 
 </Project>
