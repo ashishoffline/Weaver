@@ -1,5 +1,6 @@
 {
   "branches": [ "master" ],
+  "repositoryUrl": "https://x-access-token:${GITHUB_TOKEN}@github.com/ashishoffline/Weaver.git",
   "plugins": [
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
