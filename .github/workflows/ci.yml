@@ -54,6 +54,9 @@ jobs:
 
       - name: Show Git user
         run: git config --list
+
+      - name: Override Git remote to use PAT
+        run: git remote set-url origin https://x-access-token:${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}@github.com/ashishoffline/Weaver.git
         
       - name: Install semantic-release
         run: npm install -g semantic-release @semantic-release/git @semantic-release/changelog @semantic-release/github
