@@ -45,7 +45,7 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/master'
     env:
-      GH_TOKEN: ${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
