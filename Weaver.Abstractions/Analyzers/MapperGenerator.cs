@@ -133,57 +133,58 @@ public class MapperGenerator : IIncrementalGenerator
                     : $"{prop.Name} = ord{prop.Name} >= 0 ? reader.{GetValueFunction(prop.Type, prop.IsNullable)}(ord{prop.Name}) : default";
         }));
 
-        return $@"// Source Generated code, don't modify.
-using System;
-using System.Data.Common;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
+        return $$"""
+                 // Source Generated code, don't modify.
+                 using System;
+                 using System.Data.Common;
+                 using System.Collections.Generic;
+                 using System.Threading;
+                 using System.Threading.Tasks;
 
-namespace {namespaceName}
-{{
-    public static class {className}Mapper
-    {{
-        public static async Task<IReadOnlyList<{className}>> MapFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
-        {{
-            var results = new List<{className}>();
+                 namespace {{namespaceName}}
+                 {
+                     public static class {{className}}Mapper
+                     {
+                         public static async Task<IReadOnlyList<{{className}}>> MapFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
+                         {
+                             var results = new List<{{className}}>();
 
-            // Pre-calculate ordinals for each column
-            {ordinalVariables};
-            
-            // Process all rows using pre-calculated ordinals
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-            {{
-                results.Add(new {className}
-                {{
-                    {propertyMappings}
-                }});
-            }}
-            
-            return results.AsReadOnly();
-        }}
-        
-        public static async Task<{className}?> MapSingleFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
-        {{
-            {className}? result = null;
+                             // Pre-calculate ordinals for each column
+                             {{ordinalVariables}};
+                             
+                             // Process all rows using pre-calculated ordinals
+                             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                             {
+                                 results.Add(new {{className}}
+                                 {
+                                     {{propertyMappings}}
+                                 });
+                             }
+                             
+                             return results.AsReadOnly();
+                         }
+                         
+                         public static async Task<{{className}}?> MapSingleFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
+                         {
+                             {{className}}? result = null;
 
-            // Pre-calculate ordinals for each column
-            {ordinalVariables};
-            
-            // Process all rows using pre-calculated ordinals
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-            {{
-                result = new {className}
-                {{
-                    {propertyMappings}
-                }};
-                break;
-            }}
-            
-            return result;
-        }}
-    }}
-}}";
+                             // Pre-calculate ordinals for each column
+                             {{ordinalVariables}};
+                             
+                             // Process all rows using pre-calculated ordinals
+                             if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                             {
+                                 result = new {{className}}
+                                 {
+                                     {{propertyMappings}}
+                                 };
+                             }
+                             
+                             return result;
+                         }
+                     }
+                 }
+                 """;
     }
 
     private static List<PropertyInfo> GetMappableProperties(INamedTypeSymbol typeSymbol)

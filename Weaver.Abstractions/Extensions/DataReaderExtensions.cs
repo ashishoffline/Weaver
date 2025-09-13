@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 
 namespace System.Data.Common;
 
@@ -9,6 +10,7 @@ namespace System.Data.Common;
 /// These methods simplify reading database fields that may contain <c>DBNull</c>,
 /// returning nullable types (e.g., <c>int?</c>, <c>string?</c>) instead of throwing exceptions.
 /// </remarks>
+[SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "In externally visible method 'int DataReaderExtensions.GetOrdinalSafe(DbDataReader reader, string name)', validate parameter 'reader' is non-null before using it. If appropriate, throw an 'ArgumentNullException' when the argument is 'null'. (https://learn.microsoft.com/dotnet/fundamentals/code-analysis/quality-rules/ca1062)")]
 public static class DataReaderExtensions
 {
     /// <summary>
@@ -51,12 +53,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="short"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="short"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
-    /// Marked with <see cref="MethodImplOptions.AggressiveInlining"/> to encourage the JIT 
-    /// compiler to inline this method for performance.
+    /// This method provides a safe way to handle database columns that may contain NULL values, 
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static short? GetNullableInt16(this DbDataReader reader, int ordinal)
@@ -76,12 +78,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="int"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="int"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
     /// This method provides a safe way to handle database columns that may contain NULL values, 
-    /// returning <c>null</c> instead of throwing an exception.
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int? GetNullableInt32(this DbDataReader reader, int ordinal)
@@ -101,12 +103,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="long"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="long"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
     /// This method provides a safe way to handle database columns that may contain NULL values, 
-    /// returning <c>null</c> instead of throwing an exception.
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static long? GetNullableInt64(this DbDataReader reader, int ordinal)
@@ -126,12 +128,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="double"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="double"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
     /// This method provides a safe way to handle database columns that may contain NULL values, 
-    /// returning <c>null</c> instead of throwing an exception.
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double? GetNullableDouble(this DbDataReader reader, int ordinal)
@@ -151,12 +153,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="string"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="string"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
     /// This method provides a safe way to handle database columns that may contain NULL values, 
-    /// returning <c>null</c> instead of throwing an exception.
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string? GetNullableString(this DbDataReader reader, int ordinal)
@@ -176,12 +178,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="bool"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="bool"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
     /// This method provides a safe way to handle database columns that may contain NULL values, 
-    /// returning <c>null</c> instead of throwing an exception.
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool? GetNullableBoolean(this DbDataReader reader, int ordinal)
@@ -200,12 +202,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="byte"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="byte"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
     /// This method provides a safe way to handle database columns that may contain NULL values, 
-    /// returning <c>null</c> instead of throwing an exception.
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static byte? GetNullableByte(this DbDataReader reader, int ordinal)
@@ -224,12 +226,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="char"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="char"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
     /// This method provides a safe way to handle database columns that may contain NULL values, 
-    /// returning <c>null</c> instead of throwing an exception.
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static char? GetNullablechar(this DbDataReader reader, int ordinal)
@@ -248,12 +250,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="decimal"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="decimal"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
     /// This method provides a safe way to handle database columns that may contain NULL values, 
-    /// returning <c>null</c> instead of throwing an exception.
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static decimal? GetNullableDecimal(this DbDataReader reader, int ordinal)
@@ -272,12 +274,12 @@ public static class DataReaderExtensions
     /// The zero-based column ordinal of the value to retrieve.
     /// </param>
     /// <returns>
-    /// The <see cref="DateTime"/> value at the specified column if it is not <c>DBNull</c>; 
-    /// otherwise <c>null</c>.
+    /// The <see cref="DateTime"/> value at the specified column if it is not <see cref="DBNull.Value"/>;
+    /// otherwise <see langword="null"/>.
     /// </returns>
     /// <remarks>
     /// This method provides a safe way to handle database columns that may contain NULL values, 
-    /// returning <c>null</c> instead of throwing an exception.
+    /// returning <see langword="null"/> instead of throwing an exception.
     /// </remarks>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static DateTime? GetNullableDateTime(this DbDataReader reader, int ordinal)
