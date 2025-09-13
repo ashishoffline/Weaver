@@ -1,5 +1,7 @@
 ﻿# Weaver.Abstractions
 
+![Build](https://github.com/ashishoffline/Weaver/actions/workflows/ci.yml/badge.svg)
+
 High-performance, source-generated data access library for .NET.
 
 ## Features
