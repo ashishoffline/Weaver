@@ -6,10 +6,36 @@ using System.Text;
 
 namespace Weaver.Abstractions.Analyzers;
 
+/// <summary>
+/// A Roslyn source generator that automatically generates mapper classes for 
+/// entity or DTO classes marked with <see cref="Weaver.Abstractions.Attributes.GenerateMapperAttribute"/>.
+/// </summary>
+/// <remarks>
+/// This class implements <see cref="IIncrementalGenerator"/>, allowing it to participate 
+/// in incremental source generation for better performance and scalability. 
+/// <para>
+/// The generator scans the compilation for classes decorated with <see cref="Weaver.Abstractions.Attributes.GenerateMapperAttribute"/> 
+/// and generates strongly-typed mapping code (e.g., from <see cref="DbDataReader"/> to the class).
+/// </para>
+/// <para>
+/// Features:
+/// <list type="bullet">
+///   <item>
+///     <description>Supports optional <c>IsStrict</c> behavior for null-checking.</description>
+///   </item>
+///   <item>
+///     <description>Precomputes column ordinals for efficient database mapping.</description>
+///   </item>
+///   <item>
+///     <description>Generates asynchronous mapping methods for single or multiple rows.</description>
+///   </item>
+/// </list>
+/// </para>
+/// </remarks>
 [Generator(LanguageNames.CSharp)]
 public class MapperGenerator : IIncrementalGenerator
 {
-    private class PropertyInfo
+    private sealed class PropertyInfo
     {
         public required string Name { get; init; }
         public required string Type { get; init; }
@@ -18,6 +44,28 @@ public class MapperGenerator : IIncrementalGenerator
         public required bool IsInitOnly { get; init; }
     }
 
+    /// <summary>
+    /// Initializes the source generator by registering incremental steps for code generation.
+    /// </summary>
+    /// <param name="context">
+    /// The <see cref="IncrementalGeneratorInitializationContext"/> provided by the compiler, 
+    /// used to register syntax providers, transformations, and outputs for the generator.
+    /// </param>
+    /// <remarks>
+    /// This method is called by the compiler once during the generation process. 
+    /// It should be used to set up the incremental pipeline, including:
+    /// <list type="bullet">
+    ///   <item>
+    ///     <description>Detecting relevant syntax nodes or symbols (e.g., classes with <see cref="Weaver.Abstractions.Attributes.GenerateMapperAttribute"/>).</description>
+    ///   </item>
+    ///   <item>
+    ///     <description>Transforming input nodes or symbols into generator models.</description>
+    ///   </item>
+    ///   <item>
+    ///     <description>Registering outputs that will produce generated source code.</description>
+    ///   </item>
+    /// </list>
+    /// </remarks>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Step 1: Collect candidate classes with [GenerateMapper]
@@ -27,7 +75,7 @@ public class MapperGenerator : IIncrementalGenerator
                 transform: static (ctx, _) =>
                 {
                     var classDecl = (ClassDeclarationSyntax)ctx.Node;
-                    var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDecl);
+                    var symbol = ctx.SemanticModel.GetDeclaredSymbol(classDecl, _);
                     if (symbol is INamedTypeSymbol namedType &&
                         namedType.GetAttributes().Any(attr => attr.AttributeClass?.Name == "GenerateMapperAttribute"))
                     {
@@ -46,16 +94,33 @@ public class MapperGenerator : IIncrementalGenerator
         });
     }
 
-    private string GenerateMapperForClass(INamedTypeSymbol classSymbol)
+    #region PRIVATE METHODS
+    private static string GenerateMapperForClass(INamedTypeSymbol classSymbol)
     {
+        var properties = GetMappableProperties(classSymbol);
         var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
         var className = classSymbol.Name;
-
-        var properties = GetMappableProperties(classSymbol);
-        return GenerateMappingCode(properties, namespaceName, className, true);
+        // Since the attribute is guaranteed to exist, we can assume First will not throw exception.
+        AttributeData generateMapperAttribute= classSymbol.GetAttributes()
+            .First(ad => ad.AttributeClass?.Name == "GenerateMapperAttribute");
+        bool isClassStrict = GetClassIsStrict(generateMapperAttribute);
+        return GenerateMappingCode(properties, namespaceName, className, isClassStrict);
     }
+    private static bool GetClassIsStrict(AttributeData attribute)
+    {
+        // If there is exactly one named argument, and it is "IsStrict", return its value
+        if (attribute.NamedArguments.Length == 1 &&
+            attribute.NamedArguments[0].Key == "IsStrict" &&
+            attribute.NamedArguments[0].Value.Value is bool isStrict)
+        {
+            return isStrict;
+        }
 
-    private string GenerateMappingCode(List<PropertyInfo> properties, string namespaceName, string className, bool isStrict)
+        // Default value if not specified
+        return false;
+    }
+    
+    private static string GenerateMappingCode(List<PropertyInfo> properties, string namespaceName, string className, bool isStrict)
     {
         var ordinalFunctionName = isStrict ? "GetOrdinal" : "GetOrdinalSafe";
         var ordinalVariables = string.Join($";\n\t\t\t", properties.Select(prop => $"int ord{prop.Name} = reader.{ordinalFunctionName}(\"{prop.ColumnName}\")"));
@@ -83,11 +148,11 @@ namespace {namespaceName}
         {{
             var results = new List<{className}>();
 
-            // Ordinal Values for each column.
+            // Pre-calculate ordinals for each column
             {ordinalVariables};
             
             // Process all rows using pre-calculated ordinals
-            while (await reader.ReadAsync(cancellationToken))
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {{
                 results.Add(new {className}
                 {{
@@ -97,11 +162,31 @@ namespace {namespaceName}
             
             return results.AsReadOnly();
         }}
+        
+        public static async Task<{className}?> MapSingleFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
+        {{
+            {className}? result = null;
+
+            // Pre-calculate ordinals for each column
+            {ordinalVariables};
+            
+            // Process all rows using pre-calculated ordinals
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {{
+                result = new {className}
+                {{
+                    {propertyMappings}
+                }};
+                break;
+            }}
+            
+            return result;
+        }}
     }}
 }}";
     }
 
-    private List<PropertyInfo> GetMappableProperties(INamedTypeSymbol typeSymbol)
+    private static List<PropertyInfo> GetMappableProperties(INamedTypeSymbol typeSymbol)
     {
         var properties = new List<PropertyInfo>();
 
@@ -115,9 +200,9 @@ namespace {namespaceName}
             if (member.GetAttributes().Any(attr => attr.AttributeClass?.Name == "IgnoreAttribute"))
                 continue;
 
-            var columnName = GetColumnName(member);
+            string columnName = GetColumnName(member);
 
-            var isInitOnly = member.SetMethod?.IsInitOnly == true;
+            bool isInitOnly = member.SetMethod?.IsInitOnly == true;
 
             properties.Add(new PropertyInfo
             {
@@ -125,9 +210,8 @@ namespace {namespaceName}
                 Type = member.Type.ToDisplayString(),
                 ColumnName = columnName,
                 IsNullable = member.Type.CanBeReferencedByName && (member.Type.IsReferenceType ||
-                (member.Type is INamedTypeSymbol namedType &&
-                namedType.IsGenericType &&
-                namedType.ConstructedFrom.ToDisplayString() == "System.Nullable<T>")),
+                (member.Type is INamedTypeSymbol { IsGenericType: true } namedType &&
+                 namedType.ConstructedFrom.ToDisplayString() == "System.Nullable<T>")),
                 IsInitOnly = isInitOnly
             });
         }
@@ -135,7 +219,7 @@ namespace {namespaceName}
         return properties;
     }
 
-    private string GetColumnName(IPropertySymbol property)
+    private static string GetColumnName(IPropertySymbol property)
     {
         var columnAttr = property.GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.Name == "ColumnAttribute");
@@ -148,7 +232,7 @@ namespace {namespaceName}
         return property.Name;
     }
 
-    private string GetValueFunction(string typeName, bool isNullable)
+    private static string GetValueFunction(string typeName, bool isNullable)
     {
         return typeName switch
         {
@@ -160,5 +244,7 @@ namespace {namespaceName}
             _ => nameof(DbDataReader.GetValue),
         };
     }
+    
+    #endregion
 }
 
