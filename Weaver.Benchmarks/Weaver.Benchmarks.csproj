@@ -14,9 +14,7 @@
 
 	<ItemGroup>
 		<!-- For development, reference both as project and analyzer -->
-		<ProjectReference Include="..\Weaver.Abstractions\Weaver.Abstractions.csproj"
-						  OutputItemType="Analyzer"
-						  ReferenceOutputAssembly="true" />
+		<ProjectReference Include="..\Weaver.Abstractions\Weaver.Abstractions.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="true" />
 	</ItemGroup>
 
 </Project>
