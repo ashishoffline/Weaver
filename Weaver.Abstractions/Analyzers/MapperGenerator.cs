@@ -100,12 +100,15 @@ public class MapperGenerator : IIncrementalGenerator
         var properties = GetMappableProperties(classSymbol);
         var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
         var className = classSymbol.Name;
+
         // Since the attribute is guaranteed to exist, we can assume First will not throw exception.
         AttributeData generateMapperAttribute= classSymbol.GetAttributes()
             .First(ad => ad.AttributeClass?.Name == "GenerateMapperAttribute");
         bool isClassStrict = GetClassIsStrict(generateMapperAttribute);
+
         return GenerateMappingCode(properties, namespaceName, className, isClassStrict);
     }
+
     private static bool GetClassIsStrict(AttributeData attribute)
     {
         // If there is exactly one named argument, and it is "IsStrict", return its value
@@ -134,57 +137,75 @@ public class MapperGenerator : IIncrementalGenerator
         }));
 
         return $$"""
-                 // Source Generated code, don't modify.
-                 using System;
-                 using System.Data.Common;
-                 using System.Collections.Generic;
-                 using System.Threading;
-                 using System.Threading.Tasks;
+// Source Generated code, don't modify.
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Threading;
+using System.Threading.Tasks;
+using Weaver.Abstractions;
 
-                 namespace {{namespaceName}}
-                 {
-                     public static class {{className}}Mapper
-                     {
-                         public static async Task<IReadOnlyList<{{className}}>> MapFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
-                         {
-                             var results = new List<{{className}}>();
+namespace {{namespaceName}}
+{
+    [GeneratedCode("Weaver.Abstractions", "1.0.0")]
+    public sealed class {{className}}Mapper : IDbDataReaderMapper<{{className}}>
+    {
+        ///<inheritdoc/>
+        public async Task<IReadOnlyList<{{className}}>> MapAllFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
+        {
+            var results = new List<{{className}}>();
+            // Pre-calculate ordinals for each column
+            {{ordinalVariables}};
+            
+            // Process all rows using pre-calculated ordinals
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                results.Add(new {{className}}
+                {
+                    {{propertyMappings}}
+                });
+            }
+            
+            return results.AsReadOnly();
+        }
+        
+        ///<inheritdoc/>
+        public async Task<{{className}}?> MapFirstFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
+        {
+            {{className}}? result = null;
+            // Pre-calculate ordinals for each column
+            {{ordinalVariables}};
+            
+            // Process all rows using pre-calculated ordinals
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                result = new {{className}}
+                {
+                    {{propertyMappings}}
+                };
+            }
+            
+            return result;
+        }
 
-                             // Pre-calculate ordinals for each column
-                             {{ordinalVariables}};
-                             
-                             // Process all rows using pre-calculated ordinals
-                             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                             {
-                                 results.Add(new {{className}}
-                                 {
-                                     {{propertyMappings}}
-                                 });
-                             }
-                             
-                             return results.AsReadOnly();
-                         }
-                         
-                         public static async Task<{{className}}?> MapSingleFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
-                         {
-                             {{className}}? result = null;
-
-                             // Pre-calculate ordinals for each column
-                             {{ordinalVariables}};
-                             
-                             // Process all rows using pre-calculated ordinals
-                             if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                             {
-                                 result = new {{className}}
-                                 {
-                                     {{propertyMappings}}
-                                 };
-                             }
-                             
-                             return result;
-                         }
-                     }
-                 }
-                 """;
+        ///<inheritdoc/>
+        public async IAsyncEnumerable<{{className}}> StreamFromReaderAsync(DbDataReader reader, CancellationToken cancellationToken)
+        {
+            // Pre-calculate ordinals for each column
+            {{ordinalVariables}};
+            
+            // Process all rows using pre-calculated ordinals
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                yield return new {{className}}
+                {
+                    {{propertyMappings}}
+                };
+            }
+        }
+    }
+}
+""";
     }
 
     private static List<PropertyInfo> GetMappableProperties(INamedTypeSymbol typeSymbol)

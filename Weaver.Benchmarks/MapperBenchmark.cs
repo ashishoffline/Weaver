@@ -3,6 +3,7 @@ using Dapper;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using Weaver.Abstractions;
 
 namespace Weaver.Benchmarks
 {
@@ -111,7 +112,8 @@ namespace Weaver.Benchmarks
         public async Task<IReadOnlyList<Employee>> SourceGen()
         {
             DbDataReader reader = _testData.CreateDataReader();
-            return await EmployeeMapper.MapFromReaderAsync(reader, CancellationToken.None);
+            IDbDataReaderMapper<Employee> employeeMapper = new EmployeeMapper();
+            return await employeeMapper.MapAllFromReaderAsync(reader, CancellationToken.None);
         }
 
         [Benchmark]
